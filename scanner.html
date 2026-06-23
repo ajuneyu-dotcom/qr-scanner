@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>活動掃描系統</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+}
+#reader {
+  width: 300px;
+  margin: auto;
+}
+#result {
+  font-size: 22px;
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>工作人員掃描</h2>
+<div id="reader"></div>
+<div id="result"></div>
+
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbxssms46vFkms6eO1qvB2tp_RmwJtCve-p7MNzi_imkLBIJYYIYAeloQCq0xKgwnuAV/exec";
+
+function onScanSuccess(decodedText) {
+
+  fetch(API_URL + "?scan=" + decodedText)
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById("result").innerHTML = data;
+    });
+
+}
+
+new Html5QrcodeScanner(
+  "reader",
+  { fps: 10, qrbox: 250 }
+).render(onScanSuccess);
+
+</script>
+
+</body>
+</html>
