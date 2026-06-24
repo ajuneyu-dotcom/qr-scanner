@@ -4,18 +4,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>活動掃描系統</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
+
 <style>
 body {
   font-family: Arial;
   text-align: center;
+  background: #f5f5f5;
+  transition: background 0.3s;
 }
+
+h2 {
+  font-size: 26px;
+}
+
 #reader {
   width: 300px;
   margin: auto;
 }
+
 #result {
-  font-size: 22px;
-  margin-top: 20px;
+  margin-top: 40px;
+  font-size: 70px;
+  font-weight: bold;
+}
+
+.success-bg {
+  background: #2ecc71 !important;
+  color: white;
+}
+
+.error-bg {
+  background: #e74c3c !important;
+  color: white;
+}
+
+.small-text {
+  font-size: 30px;
+  margin-top: 10px;
 }
 </style>
 </head>
@@ -30,12 +55,47 @@ body {
 
 const API_URL = "https://script.google.com/macros/s/AKfycbxssms46vFkms6eO1qvB2tp_RmwJtCve-p7MNzi_imkLBIJYYIYAeloQCq0xKgwnuAV/exec";
 
+// ✅ 播放提示音
+function playBeep() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+  audio.play();
+}
+
 function onScanSuccess(decodedText) {
 
   fetch(API_URL + "?scan=" + decodedText)
     .then(response => response.text())
     .then(data => {
-      document.getElementById("result").innerHTML = data;
+
+      const body = document.body;
+      const resultDiv = document.getElementById("result");
+
+      // ✅ 成功
+      if (data.includes("成功")) {
+
+        playBeep();
+
+        // 抽出到場數字
+        let match = data.match(/已到場:\s*(\d+)/);
+        let count = match ? match[1] : "";
+
+        body.classList.add("success-bg");
+        resultDiv.innerHTML =
+          "✅ 成功<br><div class='small-text'>已到場: " + count + "</div>";
+
+      } else {
+
+        body.classList.add("error-bg");
+        resultDiv.innerHTML = "❌ " + data;
+      }
+
+      // ✅ 3秒後還原畫面
+      setTimeout(() => {
+        body.classList.remove("success-bg");
+        body.classList.remove("error-bg");
+        resultDiv.innerHTML = "";
+      }, 3000);
+
     });
 
 }
