@@ -55,6 +55,8 @@ h2 {
 
 const API_URL = "https://script.google.com/macros/s/AKfycbxssms46vFkms6eO1qvB2tp_RmwJtCve-p7MNzi_imkLBIJYYIYAeloQCq0xKgwnuAV/exec";
 
+let scanningLocked = false; // ✅ 防止重複掃描
+
 // ✅ 播放提示音
 function playBeep() {
   const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
@@ -63,6 +65,11 @@ function playBeep() {
 
 function onScanSuccess(decodedText) {
 
+  // ✅ 如果鎖住，直接不處理
+  if (scanningLocked) return;
+
+  scanningLocked = true; // ✅ 上鎖
+
   fetch(API_URL + "?scan=" + decodedText)
     .then(response => response.text())
     .then(data => {
@@ -70,18 +77,20 @@ function onScanSuccess(decodedText) {
       const body = document.body;
       const resultDiv = document.getElementById("result");
 
-      // ✅ 成功
       if (data.includes("成功")) {
 
         playBeep();
 
-        // 抽出到場數字
-        let match = data.match(/已到場:\s*(\d+)/);
-        let count = match ? match[1] : "";
+        let match = data.match(/\|(.+)\|(\d+)/);
+        let name = match ? match[1] : "";
+        let count = match ? match[2] : "";
 
         body.classList.add("success-bg");
+
         resultDiv.innerHTML =
-          "✅ 成功<br><div class='small-text'>已到場: " + count + "</div>";
+          "✅ 成功<br>" +
+          "<div class='small-text'>" + name + "</div>" +
+          "<div class='small-text'>已到場: " + count + "</div>";
 
       } else {
 
@@ -89,13 +98,17 @@ function onScanSuccess(decodedText) {
         resultDiv.innerHTML = "❌ " + data;
       }
 
-      // ✅ 8秒後還原畫面
+      // ✅ 10秒後還原畫面 + 解鎖
       setTimeout(() => {
         body.classList.remove("success-bg");
         body.classList.remove("error-bg");
         resultDiv.innerHTML = "";
-      }, 8000);
+        scanningLocked = false; // ✅ 解鎖
+      }, 10000);
 
+    })
+    .catch(() => {
+      scanningLocked = false;
     });
 
 }
