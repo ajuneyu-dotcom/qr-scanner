@@ -89,12 +89,12 @@ function onScanSuccess(decodedText) {
         resultDiv.innerHTML = "❌ " + data;
       }
 
-      // ✅ 3秒後還原畫面
+      // ✅ 8秒後還原畫面
       setTimeout(() => {
         body.classList.remove("success-bg");
         body.classList.remove("error-bg");
         resultDiv.innerHTML = "";
-      }, 3000);
+      }, 8000);
 
     });
 
